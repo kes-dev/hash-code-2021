@@ -1,6 +1,11 @@
 import logging
 import argparse
 import yaml
+import importlib.util
+spec = importlib.util.spec_from_file_location("sim", "./sim.py")
+sim = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(foo)
+foo.MyClass()
 
 logging.basicConfig(filename='run.log',
     format='%(asctime)s [%(levelname)s] %(message)s',
@@ -21,35 +26,38 @@ def load_trip(path):
 
     with open(path, 'r') as trip_data_file:
         for index, line in enumerate(trip_data_file.readlines()):
-            chunks = str.split(' ')
+            chunks = line.split(' ')
             if index == 0:
-                misc['duration'] = chunks[0],
-                misc['intersection'] = chunks[1],
-                misc['street'] = chunks[2],
-                misc['car'] = chunks[3],
-                misc['bonus'] = chunks[4]
+                misc['duration'] = int(chunks[0])
+                misc['intersection'] = int(chunks[1])
+                misc['street'] = int(chunks[2])
+                misc['car'] = int(chunks[3])
+                misc['bonus'] = int(chunks[4])
 
-            elif index <= misc['streetCount']:
+            elif index <= misc['street']:
                 street_curr = {
-                    'begin': chunk[0],
-                    'end': chunk[1],
-                    'name': chunk[2],
-                    'length': chunk[3]
+                    'begin': int(chunks[0]),
+                    'end': int(chunks[1]),
+                    'name': chunks[2],
+                    'length': int(chunks[3])
                 }
                 street.append(street_curr)
             else:
                 car_curr = {
-                    'streets': chunks[0],
+                    'streets': int(chunks[0]),
                     'path': chunks[1:]
                 }
                 car.append(car_curr)
 
-        trip_data = {}
-        trip_data['misc'] = misc
-        trip_data['street'] = street
-        trip_data['car'] = car
+    assert len(street) == misc['street']
+    assert len(car) == misc['car']
 
-        return trip_data
+    trip_data = {}
+    trip_data['misc'] = misc
+    trip_data['street'] = street
+    trip_data['car'] = car
+
+    return trip_data
 
 
 def load_schedule(path):
@@ -64,9 +72,8 @@ def main():
 
     logging.info('---load trip data---')
     trip_data = load_trip(cfg['trip_data_path'])
+    logging.info('map info: ')
     logging.info(trip_data['misc'])
-    logging.info(trip_data['street'])
-    logging.info(trip_data['car'])
 
     logging.info('---load schedule data---')
     schedule_data = load_schedule(cfg['schedule_data_path'])
