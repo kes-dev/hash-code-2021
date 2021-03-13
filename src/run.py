@@ -57,22 +57,25 @@ def load_schedule(path):
         logging.info('loadded schedule')
 
 def main():
-    logging.info('prepare configs')
+    logging.info('---run start---')
+    logging.info('---prepare configs---')
     cfg = prepare_config()
     logging.info(cfg)
 
-    logging.info('load trip data')
+    logging.info('---load trip data---')
     trip_data = load_trip(cfg['trip_data_path'])
     logging.info(trip_data['misc'])
     logging.info(trip_data['street'])
     logging.info(trip_data['car'])
 
-    logging.info('load schedule data')
+    logging.info('---load schedule data---')
     schedule_data = load_schedule(cfg['schedule_data_path'])
 
-    logging.info('run simulation')
+    logging.info('---run simulation---')
 
-    logging.info('evaluate')
+    logging.info('---evaluate---')
+
+    logging.info('---run end---')
 
 if __name__ == "__main__":
     main()
