@@ -1,2 +1,6 @@
-trip_data_path: ./data/hashcode.in
-schedule_data_path: ./schedule/average.in
+map_path: ./data/hashcode.in
+schedule_path: ./schedule/average.in
+strategy:
+  name: naiveratio
+  config:
+    period: 10
