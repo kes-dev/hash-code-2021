@@ -22,30 +22,36 @@ def run(map_data, schedule):
         st_start = trip.path[0]
         int_start = map_data.street[st_start].end
         car = Car(trip.id, 0, trip.path[1:])
-        interQueue[int_start][st_name].append(car)
+        interQueue[int_start][st_start].append(car)
 
+    arrived = []
     for t in range(0, map_data.misc.d):
         interQueue, arrived = tick(map_data.street, interQueue, schedule, arrived, t)
+        print('tick: {}'.format(t))
 
     return calc_score(map_data.misc.d, map_data.misc.f, arrived)
 
-def tick(street_data, interQueue, schedule, finished, t):
+def tick(street_data, interQueue, schedule, arrived, t):
     for i, sch in enumerate(schedule):
+        if sch.period == 0:
+            continue
+
         remain = t % sch.period
         for st_name, green_duration in sch.items():
-            remain -= green_duation
+            remain -= green_duration
             if remain <= 0 and len(interQueue[i][st_name]) > 0:
                 car = interQueue[i][st_name][0]
                 if car.t < t:
-                    del queue[0]
+                    del interQueue[i][st_name][0]
 
                     if len(car.path) > 0:
-                        st_dest = street_data[car.path[0]]
+                        st_name = car.path[0]
+                        dest = street_data[st_name]
                         del car.path[0]
-                        car.t = t + st_dest.length
-                        interQueue[st_dest.end].append(car)
+                        car.t = t + dest.length
+                        interQueue[dest.end][st_name].append(car)
                     else:
-                        finished.append(car)
+                        arrived.append(car)
 
                 break
     return interQueue, arrived
