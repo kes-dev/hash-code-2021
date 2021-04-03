@@ -3,6 +3,7 @@ import yaml
 
 import datautil as du
 import strategy.naiveratio as nr
+import sim
 
 def prepare_config():
     parser = argparse.ArgumentParser(description='traffic simulation')
@@ -21,8 +22,11 @@ def print_map_info(misc):
     print('Duration: {}'.format(misc.d))
     print('Intersections: {}'.format(misc.int_count))
     print('Streets: {}'.format(misc.str_count))
-    print('Cars: {}'.format(misc.car_count))
+    print('Cars: {}'.format(misc.trip_count))
     print('Bonus: {}'.format(misc.f))
+
+def print_score(score):
+    print('Score: {}'.format(score))
 
 def log_section(msg):
     rPad = 40
@@ -50,8 +54,8 @@ def main():
 
 
     log_section('Run Simulation')
-
-    log_section('Evaluate')
+    score = sim.run(map_data, schedule)
+    print_score(score)
 
     log_section('Run End')
 

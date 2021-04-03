@@ -1,4 +1,4 @@
-map_path: ./data/hashcode.in
+map_path: ./map/hashcode-kaggle.in
 schedule_path: ./schedule/average.in
 strategy:
   name: naiveratio

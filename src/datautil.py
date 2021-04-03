@@ -4,34 +4,32 @@ class Street:
         self.end = end
         self.length = length
 
-class Car:
-    def __init__(self, str_count, paths):
+class Trip:
+    def __init__(self, str_count, path, id):
         self.str_count = str_count
-        self.paths = paths
+        self.path = path
+        self.id = id
 
 class Intersection:
-    def __init__(self, incoming=None, outgoing=None, schedule=None):
+    def __init__(self, id, incoming=None, outgoing=None):
+        self.id = id
         self.incoming = incoming if incoming != None else []
         self.outgoing = outgoing if outgoing != None else []
-        self.schedule = schedule if schedule != None else {}
-
-    def validate(self, schedule):
-        for st, _ in schedule:
-            assert st in incoming == True
 
 class Misc:
-    def __init__(self, d, int_count, str_count, car_count, f):
+    def __init__(self, d, int_count, str_count, trip_count, f):
         self.d = d
         self.int_count = int_count
         self.str_count = str_count
-        self.car_count = car_count
+        self.trip_count = trip_count
         self.f = f
 
 class MapData:
-    def __init__(self, misc, street, car):
+    def __init__(self, misc, intersection, street, trip):
         self.misc = misc
+        self.intersection = intersection
         self.street = street
-        self.car = car
+        self.trip = trip
 
 class DataManager:
     def __init__(self, map_path, schedule_path):
@@ -45,28 +43,41 @@ class DataManager:
             print(self.schedule_path)
 
     def load_map(self):
+        inter = []
         street = {}
-        car = []
+        trip = []
+        trip_id = 0
 
         with open(self.map_path, 'r') as f:
             for index, line in enumerate(f.readlines()):
                 line = line.rstrip('\n')
                 if index == 0:
-                    d, int_count, str_count, car_count, f = line.split(' ')
-                    misc = Misc(int(d), int(int_count), int(str_count), int(car_count), int(f))
+                    d, int_count, str_count, trip_count, f = line.split(' ')
+                    misc = Misc(int(d),
+                                int(int_count),
+                                int(str_count),
+                                int(trip_count),
+                                int(f))
+
+                    for i in range(0, misc.int_count):
+                        inter.append(Intersection(i))
 
                 elif index <= misc.str_count:
                     begin, end, name, length = line.split(' ')
                     street[name] = Street(int(begin), int(end), int(length))
+                    inter[int(end)].incoming.append(name)
+                    inter[int(begin)].outgoing.append(name)
 
                 else:
-                    str_count, *paths = line.split(' ')
-                    c = Car(int(str_count), paths)
-                    car.append(c)
+                    str_count, *path = line.split(' ')
+                    trip.append(Trip(int(str_count), path, trip_id))
+                    trip_id += 1
 
+        assert len(inter) == misc.int_count
         assert len(street) == misc.str_count
-        assert len(car) == misc.car_count
-        return MapData(misc, street, car)
+        assert len(trip) == misc.trip_count
+
+        return MapData(misc, inter, street, trip)
 
     def save_schedule(self, schedule):
         with open(self.schedule_path, 'w') as f:
