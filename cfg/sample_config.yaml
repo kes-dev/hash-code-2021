@@ -1,5 +1,6 @@
 map_path: ./map/hashcode-kaggle.in
-schedule_path: ./schedule/average.in
+schedule_path: ./schedule/naiveratio.in
+result_path: ./result/naiveratio.yaml
 strategy:
   name: naiveratio
   config:

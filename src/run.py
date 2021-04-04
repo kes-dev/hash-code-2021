@@ -40,7 +40,8 @@ def main():
     cfg = prepare_config()
     print(cfg)
 
-    dm = du.DataManager(cfg['map_path'], cfg['schedule_path'])
+    dm = du.DataManager(cfg['map_path'], cfg['schedule_path'], cfg['result_path'])
+    dm.check_path()
 
     log_section('Load Map Data')
     map_data = dm.load_map()
@@ -52,6 +53,7 @@ def main():
 
     log_section('Simulation Starts')
     score, arrived = sim.run(map_data, schedule)
+    dm.save_result(score, arrived)
     log_section('Simulation Ends')
     print_score(score, len(arrived), map_data.misc.trip_count)
 

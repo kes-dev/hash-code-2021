@@ -25,9 +25,13 @@ def run(map_data, schedules):
 
     arrived = []
     for t in range(0, map_data.misc.d):
-        interQueue, arrived = tick(map_data.street, interQueue, schedules, arrived, t)
         if t % 100 == 0:
             print('tick: {}'.format(t))
+        interQueue, arrived = tick(map_data.street, interQueue, schedules, arrived, t)
+
+        if len(arrived) == map_data.misc.trip_count:
+            print('All cars arrived final destination, ends sim at tick {}'.format(t))
+            break
 
     score = calc_score(map_data.misc.d, map_data.misc.f, arrived)
     return score, arrived

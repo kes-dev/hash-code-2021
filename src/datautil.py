@@ -1,3 +1,6 @@
+import os
+import yaml
+
 class Street:
     def __init__(self, begin, end, length):
         self.begin = begin
@@ -32,15 +35,31 @@ class MapData:
         self.trip = trip
 
 class DataManager:
-    def __init__(self, map_path, schedule_path):
+    def __init__(self, map_path, schedule_path, result_path):
         self.map_path = map_path
         self.schedule_path = schedule_path
+        self.result_path = result_path
 
     def check_path(self):
         assert os.path.exists(self.map_path) == True
-        if (os.path.exists(self.schedule_path)):
+
+        schedule_dir = os.path.dirname(self.schedule_path)
+        if os.path.exists(self.schedule_path):
             print("WARN: schedule output path exists!  Will overwrite!")
             print(self.schedule_path)
+        elif not os.path.exists(schedule_dir):
+            print("schedule dir does not exists!  Will create one.")
+            os.makedirs(schedule_dir)
+            assert os.path.exists(schedule_dir) == True
+
+        result_dir = os.path.dirname(self.result_path)
+        if (os.path.exists(self.result_path)):
+            print("WARN: result output path exists!  Will overwrite!")
+            print(self.result_path)
+        elif not os.path.exists(result_dir):
+            print("WARN: result dir does not exists!  Will create one.")
+            os.makedirs(result_dir)
+            assert os.path.exists(result_dir) == True
 
     def load_map(self):
         inter = []
@@ -89,3 +108,8 @@ class DataManager:
 
     def load_schedule(self):
         print('load_schedule Not yet implemented!')
+
+    def save_result(self, score, arrived):
+        result = { 'score': score, 'arrived': arrived }
+        with open(self.result_path, 'w') as f:
+            d = yaml.dump(result, f)
