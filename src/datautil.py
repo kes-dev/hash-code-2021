@@ -110,6 +110,13 @@ class DataManager:
         print('load_schedule Not yet implemented!')
 
     def save_result(self, score, arrived):
-        result = { 'score': score, 'arrived': arrived }
+        result = { 'score': score, 'arrived': []}
+        for car in arrived:
+            res = { 'id': car.id, 't': car.t, 'wait_time': []}
+            for st_name, wait in car.wait_time.items():
+                res['wait_time'].append({st_name: wait})
+
+            result['arrived'].append(res)
+
         with open(self.result_path, 'w') as f:
             d = yaml.dump(result, f)

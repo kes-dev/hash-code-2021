@@ -4,4 +4,4 @@ result_path: ./result/naiveratio.yaml
 strategy:
   name: naiveratio
   config:
-    period: 10
+    period: 8 
