@@ -31,7 +31,7 @@ def run(map_data, schedules):
     arrived = []
     for t in range(0, map_data.misc.d):
         if t % 100 == 0:
-            print('tick: {}'.format(t))
+            print('tick: {} / {}'.format(t, map_data.misc.d))
         interQueue, arrived = tick(map_data.street, interQueue, schedules, arrived, t)
 
         if len(arrived) == map_data.misc.trip_count:
@@ -46,16 +46,20 @@ def tick(street_data, interQueue, schedules, arrived, t):
         remain = t % sch.period
         for st_name, green_duration in sch.items():
             remain -= green_duration
-            if remain <= 0 and len(interQueue[i][st_name]) > 0:
+            if remain >= 0:
+                continue
+
+            if len(interQueue[i][st_name]) > 0:
                 car = interQueue[i][st_name][0]
-                if car.t <= t:
+                diff = t - car.t
+                if diff >= 0:
                     del interQueue[i][st_name][0]
 
                     if len(car.path) > 0:
                         dest_name = car.path[0]
                         dest = street_data[dest_name]
 
-                        car.wait_time[dest_name] = t - car.t
+                        car.wait_time[dest_name] = diff
                         car.t = t + dest.length
 
                         del car.path[0]

@@ -53,8 +53,8 @@ def main():
 
     log_section('Simulation Starts')
     score, arrived = sim.run(map_data, schedule)
-    dm.save_result(score, arrived)
     log_section('Simulation Ends')
+    dm.save_result(score, arrived)
     print_score(score, len(arrived), map_data.misc.trip_count)
 
     log_section('Run End')
