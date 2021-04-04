@@ -1,5 +1,6 @@
 import argparse
 import yaml
+from datetime import datetime
 
 import datautil as du
 import strategy.naiveratio as nr
@@ -25,12 +26,13 @@ def print_map_info(misc):
     print('Cars: {}'.format(misc.trip_count))
     print('Bonus: {}'.format(misc.f))
 
-def print_score(score):
+def print_score(score, arrived, total):
     print('Score: {}'.format(score))
+    print('Arrived/Total: {} / {}'.format(arrived, total))
 
 def log_section(msg):
-    rPad = 40
-    print(('{} '.format(msg)).ljust(rPad, '='))
+    rPad = 80
+    print(('{} {} '.format(datetime.now(), msg)).ljust(rPad, '='))
 
 def main():
     log_section('Run Start')
@@ -46,16 +48,12 @@ def main():
 
     log_section('Generate Schedule')
     schedule = gen_schedule(cfg['strategy'], map_data)
-
-    log_section('Save Schedule')
     dm.save_schedule(schedule)
 
-    log_section('Gather Schedule Statistics')
-
-
-    log_section('Run Simulation')
-    score = sim.run(map_data, schedule)
-    print_score(score)
+    log_section('Simulation Starts')
+    score, arrived = sim.run(map_data, schedule)
+    log_section('Simulation Ends')
+    print_score(score, len(arrived), map_data.misc.trip_count)
 
     log_section('Run End')
 

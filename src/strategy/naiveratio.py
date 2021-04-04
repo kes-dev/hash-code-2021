@@ -10,7 +10,7 @@ def validate(cfg):
 
 def gen_schedule(map_data, cfg):
     count_per_inter = []
-    schedules = []
+    schedules = OrderedDict()
 
     for i in range(0, map_data.misc.int_count):
         count_per_inter.append({})
@@ -25,16 +25,17 @@ def gen_schedule(map_data, cfg):
 
     for i in range(0, map_data.misc.int_count):
         s = sum(count_per_inter[i].values())
+        if s == 0:
+            continue
+
         sch = OrderedDict()
         for st_name, trip_count in count_per_inter[i].items():
-            if s == 0:
-                sch[st_name] = 0
+            rate = int(round(trip_count / s * cfg['period']))
+            if trip_count > 0 and rate == 0:
+                sch[st_name] = 1
             else:
-                rate = int(round(trip_count / s * cfg['period']))
-                if trip_count > 0 and rate == 0:
-                    sch[st_name] = 1
-                else:
-                    sch[st_name] = rate
+                sch[st_name] = rate
 
-        schedules.append(sch)
+        schedules[i] = sch
+
     return schedules

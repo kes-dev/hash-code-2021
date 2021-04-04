@@ -79,9 +79,9 @@ class DataManager:
 
         return MapData(misc, inter, street, trip)
 
-    def save_schedule(self, schedule):
+    def save_schedule(self, schedules):
         with open(self.schedule_path, 'w') as f:
-            for i, sch in enumerate(schedule):
+            for i, sch in schedules.items():
                 f.write(str(i) + '\n')
                 f.write(str(len(sch.keys())) + '\n')
                 for st_name, green_duration in sch.items():
