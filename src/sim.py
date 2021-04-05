@@ -20,12 +20,18 @@ def run(map_data, schedules):
             sch.period += green_period
 
     # init car
+    max_score = 0
     for trip in map_data.trip:
         st_start = trip.path[0]
         int_start = map_data.street[st_start].end
         car = Car(trip.id, 0, trip.path[1:])
-        if int_start in interQueue:
-            interQueue[int_start][st_start].append(car)
+        interQueue[int_start][st_start].append(car)
+
+        max_score += map_data.misc.f + map_data.misc.d
+        for st_name in trip.path[1:]:
+            max_score -= map_data.street[st_name].length
+
+    print('Max possible score: {}'.format(max_score))
 
     # sim loop
     arrived = []
@@ -49,26 +55,28 @@ def tick(street_data, interQueue, schedules, arrived, t):
             if remain >= 0:
                 continue
 
-            if len(interQueue[i][st_name]) > 0:
-                car = interQueue[i][st_name][0]
-                diff = t - car.t
-                if diff >= 0:
-                    del interQueue[i][st_name][0]
-
-                    if len(car.path) > 0:
-                        dest_name = car.path[0]
-                        dest = street_data[dest_name]
-
-                        car.wait_time[dest_name] = diff
-                        car.t = t + dest.length
-
-                        del car.path[0]
-                        if dest.end in interQueue:
-                            interQueue[dest.end][dest_name].append(car)
-                    else:
-                        arrived.append(car)
-
+            if len(interQueue[i][st_name]) == 0:
                 break
+
+            car = interQueue[i][st_name][0]
+            diff = t - car.t
+            if diff >= 0:
+                del interQueue[i][st_name][0]
+
+                if len(car.path) > 0:
+                    dest_name = car.path[0]
+                    del car.path[0]
+                    dest = street_data[dest_name]
+
+                    car.wait_time[dest_name] = diff
+                    car.t = t + dest.length
+
+                    interQueue[dest.end][dest_name].append(car)
+
+                else:
+                    arrived.append(car)
+            break
+
     return interQueue, arrived
 
 def calc_score(d, f, arrived):

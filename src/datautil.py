@@ -100,11 +100,17 @@ class DataManager:
 
     def save_schedule(self, schedules):
         with open(self.schedule_path, 'w') as f:
+            f.write(str(len(schedules)) + '\n')
+
+            prev_i = 0
             for i, sch in schedules.items():
                 f.write(str(i) + '\n')
                 f.write(str(len(sch.keys())) + '\n')
                 for st_name, green_duration in sch.items():
                     f.write('{} {}'.format(st_name, green_duration) + '\n')
+                if i - prev_i > 1:
+                    print('wot?' + str(i))
+                prev_i = i
 
     def load_schedule(self):
         print('load_schedule Not yet implemented!')

@@ -33,7 +33,7 @@ def gen_schedule(map_data, cfg):
             rate = int(round(trip_count / s * cfg['period']))
             if trip_count > 0 and rate == 0:
                 sch[st_name] = 1
-            else:
+            elif rate > 0:
                 sch[st_name] = rate
 
         schedules[i] = sch
