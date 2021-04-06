@@ -1,5 +1,6 @@
+from datetime import datetime
 import os
-import yaml
+import orjson
 
 class Street:
     def __init__(self, begin, end, length):
@@ -102,15 +103,11 @@ class DataManager:
         with open(self.schedule_path, 'w') as f:
             f.write(str(len(schedules)) + '\n')
 
-            prev_i = 0
             for i, sch in schedules.items():
                 f.write(str(i) + '\n')
                 f.write(str(len(sch.keys())) + '\n')
                 for st_name, green_duration in sch.items():
                     f.write('{} {}'.format(st_name, green_duration) + '\n')
-                if i - prev_i > 1:
-                    print('wot?' + str(i))
-                prev_i = i
 
     def load_schedule(self):
         print('load_schedule Not yet implemented!')
@@ -118,11 +115,10 @@ class DataManager:
     def save_result(self, score, arrived):
         result = { 'score': score, 'arrived': []}
         for car in arrived:
-            res = { 'id': car.id, 't': car.t, 'wait_time': []}
-            for st_name, wait in car.wait_time.items():
-                res['wait_time'].append({st_name: wait})
-
+            res = { 'id': car.id, 't': car.t, 'wait_time': car.wait_time}
             result['arrived'].append(res)
 
         with open(self.result_path, 'w') as f:
-            d = yaml.dump(result, f)
+            print('{} Start writing file'.format(datetime.now()))
+            d = orjson.dumps(result, f)
+            print('{} Finish writing file'.format(datetime.now()))

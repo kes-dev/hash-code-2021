@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from indexed import IndexedOrderedDict
 import numpy as np
 
 import datautil as du
@@ -10,7 +11,7 @@ def validate(cfg):
 
 def gen_schedule(map_data, cfg):
     count_per_inter = []
-    schedules = OrderedDict()
+    schedules = {}
 
     for i in range(0, map_data.misc.int_count):
         count_per_inter.append({})
@@ -26,9 +27,10 @@ def gen_schedule(map_data, cfg):
     for i in range(0, map_data.misc.int_count):
         s = sum(count_per_inter[i].values())
         if s == 0:
+            print("Intersecion {} has no car passing through".format(i))
             continue
 
-        sch = OrderedDict()
+        sch = IndexedOrderedDict()
         for st_name, trip_count in count_per_inter[i].items():
             rate = int(round(trip_count / s * cfg['period']))
             if trip_count > 0 and rate == 0:

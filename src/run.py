@@ -4,7 +4,7 @@ from datetime import datetime
 
 import datautil as du
 import strategy.naiveratio as nr
-import sim
+from sim import Simulation
 import poststat
 
 def prepare_config():
@@ -31,9 +31,10 @@ def print_score(score, arrived, total):
     print('Score: {}'.format(score))
     print('Arrived/Total: {} / {}'.format(arrived, total))
 
-def log_section(msg):
+def log_section(msg, time=None):
     rPad = 80
-    print(('{} {} '.format(datetime.now(), msg)).ljust(rPad, '='))
+    time = datetime.now() if time == None else time
+    print(('{} {} '.format(time, msg)).ljust(rPad, '='))
 
 def main():
     log_section('Run Start')
@@ -52,14 +53,22 @@ def main():
     schedule = gen_schedule(cfg['strategy'], map_data)
     dm.save_schedule(schedule)
 
-    log_section('Simulation Starts')
-    score, arrived = sim.run(map_data, schedule)
-    log_section('Simulation Ends')
+    sim = Simulation(map_data, schedule)
+    start_time = datetime.now()
+    log_section('Simulation Starts', start_time)
+
+    score, arrived = sim.run()
+
+    end_time = datetime.now()
+    log_section('Simulation Ends', end_time)
+
+    print('Simulation took: {} '.format(end_time - start_time))
+
     dm.save_result(score, arrived)
     print_score(score, len(arrived), map_data.misc.trip_count)
 
-    poststat.wait_time_dist_by_order(arrived)
-    poststat.wait_time_dist_by_intersection(map_data.street, schedule, arrived)
+    #poststat.wait_time_dist_by_order(arrived)
+    #poststat.wait_time_dist_by_intersection(map_data.street, schedule, arrived)
 
     log_section('Run End')
 

@@ -1,87 +1,98 @@
-from collections import OrderedDict
+import numpy as np
+from collections import OrderedDict, deque
 
 class Car:
-    def __init__(self, id, t, path):
+    def __init__(self, id, t):
         self.id = id
         self.t = t
-        self.path = path
+        self.curr_path = 0
         self.wait_time = OrderedDict()
 
+class Simulation:
+    def __init__(self, map_data, schedules):
+        self.streets = map_data.street
+        self.trips = map_data.trip
+        self.f = map_data.misc.f
+        self.d = map_data.misc.d
+        self.schedules = schedules
+        self.clean()
 
-def run(map_data, schedules):
-    # init intersection
-    interQueue = {}
-    for i, sch in schedules.items():
-        interQueue[i] = {}
-        setattr(sch, 'period', 0)
+    def clean(self):
+        self.interQueue = {}
+        self.green_light = {}
+        self.arrived = []
 
-        for st_name, green_period in sch.items():
-            interQueue[i][st_name] = []
-            sch.period += green_period
+    def run(self):
+        # init intersection
+        for i, sch in self.schedules.items():
+            self.interQueue[i] = {}
+            for st_name, green_period in sch.items():
+                self.interQueue[i][st_name] = deque()
 
-    # init car
-    max_score = 0
-    for trip in map_data.trip:
-        st_start = trip.path[0]
-        int_start = map_data.street[st_start].end
-        car = Car(trip.id, 0, trip.path[1:])
-        interQueue[int_start][st_start].append(car)
+        # init car
+        max_score = 0
+        for trip in self.trips:
+            st_start = trip.path[0]
+            int_start = self.streets[st_start].end
+            car = Car(trip.id, 0)
+            self.interQueue[int_start][st_start].append(car)
 
-        max_score += map_data.misc.f + map_data.misc.d
-        for st_name in trip.path[1:]:
-            max_score -= map_data.street[st_name].length
+            max_score += self.f + self.d
+            for st_name in trip.path[1:]:
+                max_score -= self.streets[st_name].length
 
-    print('Max possible score: {}'.format(max_score))
+        print('Max possible score: {}'.format(max_score))
 
-    # sim loop
-    arrived = []
-    for t in range(0, map_data.misc.d):
-        if t % 100 == 0:
-            print('tick: {} / {}'.format(t, map_data.misc.d))
-        interQueue, arrived = tick(map_data.street, interQueue, schedules, arrived, t)
+        # sim init
+        for i, sch in self.schedules.items():
+            st_name, duration = sch.items()[0]
+            self.green_light[i] = (0, st_name, duration)
 
-        if len(arrived) == map_data.misc.trip_count:
-            print('All cars arrived final destination, ends sim at tick {}'.format(t))
-            break
+        # sim loop
+        for t in range(0, self.d):
+            if t % 100 == 0:
+                print('tick: {} / {}'.format(t, self.d))
+            self.tick(t)
 
-    score = calc_score(map_data.misc.d, map_data.misc.f, arrived)
-    return score, arrived
-
-def tick(street_data, interQueue, schedules, arrived, t):
-    for i, sch in schedules.items():
-        remain = t % sch.period
-        for st_name, green_duration in sch.items():
-            remain -= green_duration
-            if remain >= 0:
-                continue
-
-            if len(interQueue[i][st_name]) == 0:
+            if len(self.arrived) == len(self.trips):
+                print('All cars arrived final destination, ends sim at tick {}'.format(t))
                 break
 
-            car = interQueue[i][st_name][0]
-            diff = t - car.t
+        return self.calc_score(), self.arrived
 
-            if diff >= 0:
-                del interQueue[i][st_name][0]
+    def tick(self, t):
+        for i, sch in self.schedules.items():
+            index, st_name, remain = self.green_light[i]
+            if remain == 0:
+                index = (index + 1) % len(sch.keys())
+                st_name, duration = sch.items()[index]
+                self.green_light[i] = (index, st_name, duration - 1)
+            else:
+                self.green_light[i] = (index, st_name, remain - 1)
 
-                if len(car.path) > 0:
-                    dest_name = car.path[0]
-                    del car.path[0]
-                    dest = street_data[dest_name]
+            if len(self.interQueue[i][st_name]) > 0:
+                self.pass_intersection(st_name, i, t)
 
-                    car.wait_time[st_name] = diff
-                    car.t = t + dest.length
+    def pass_intersection(self, st_name, i, t):
+        diff = t - self.interQueue[i][st_name][0].t
+        if diff >= 0:
+            car = self.interQueue[i][st_name].popleft()
+            car.curr_path += 1
 
-                    interQueue[dest.end][dest_name].append(car)
+            if len(self.trips[car.id].path) > car.curr_path:
+                dest_name = self.trips[car.id].path[car.curr_path]
+                dest = self.streets[dest_name]
 
-                else:
-                    arrived.append(car)
-            break
+                car.wait_time[st_name] = diff
+                car.t = t + dest.length
 
-    return interQueue, arrived
+                self.interQueue[dest.end][dest_name].append(car)
 
-def calc_score(d, f, arrived):
-    score = f * len(arrived)
-    for car in arrived:
-        score += d - car.t
-    return score
+            else:
+                self.arrived.append(car)
+
+    def calc_score(self):
+        score = self.f * len(self.arrived)
+        for car in self.arrived:
+            score += self.d - car.t
+        return score
