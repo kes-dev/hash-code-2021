@@ -5,6 +5,7 @@ from datetime import datetime
 import datautil as du
 import strategy.naiveratio as nr
 import sim
+import poststat
 
 def prepare_config():
     parser = argparse.ArgumentParser(description='traffic simulation')
@@ -56,6 +57,9 @@ def main():
     log_section('Simulation Ends')
     dm.save_result(score, arrived)
     print_score(score, len(arrived), map_data.misc.trip_count)
+
+    poststat.wait_time_dist_by_order(arrived)
+    poststat.wait_time_dist_by_intersection(map_data.street, schedule, arrived)
 
     log_section('Run End')
 
