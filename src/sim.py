@@ -60,6 +60,7 @@ def tick(street_data, interQueue, schedules, arrived, t):
 
             car = interQueue[i][st_name][0]
             diff = t - car.t
+
             if diff >= 0:
                 del interQueue[i][st_name][0]
 
@@ -68,7 +69,7 @@ def tick(street_data, interQueue, schedules, arrived, t):
                     del car.path[0]
                     dest = street_data[dest_name]
 
-                    car.wait_time[dest_name] = diff
+                    car.wait_time[st_name] = diff
                     car.t = t + dest.length
 
                     interQueue[dest.end][dest_name].append(car)
