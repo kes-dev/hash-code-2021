@@ -118,7 +118,8 @@ class DataManager:
             res = { 'id': car.id, 't': car.t, 'wait_time': car.wait_time}
             result['arrived'].append(res)
 
-        with open(self.result_path, 'w') as f:
+        with open(self.result_path, 'w+b') as f:
             print('{} Start writing file'.format(datetime.now()))
-            d = orjson.dumps(result, f)
+            d = orjson.dumps(result, option=orjson.OPT_INDENT_2)
+            f.write(d)
             print('{} Finish writing file'.format(datetime.now()))
