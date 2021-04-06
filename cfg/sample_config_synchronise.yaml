@@ -1,0 +1,8 @@
+map_path: ./map/hashcode-kaggle.in
+schedule_path: ./schedule/synchronise.out
+result_dir: ./result/synchronise/
+strategy:
+  name: synchronise
+  config:
+    est_wait_factor: 0.5
+    max_period: 0.5

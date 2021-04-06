@@ -15,6 +15,7 @@ class Simulation:
         self.f = map_data.misc.f
         self.d = map_data.misc.d
         self.schedules = schedules
+
         self.clean()
 
     def clean(self):

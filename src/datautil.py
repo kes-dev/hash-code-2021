@@ -36,10 +36,10 @@ class MapData:
         self.trip = trip
 
 class DataManager:
-    def __init__(self, map_path, schedule_path, result_path):
-        self.map_path = map_path
-        self.schedule_path = schedule_path
-        self.result_path = result_path
+    def __init__(self, cfg):
+        self.map_path = cfg['map_path']
+        self.schedule_path = cfg['schedule_path']
+        self.result_dir = cfg['result_dir']
 
     def check_path(self):
         assert os.path.exists(self.map_path) == True
@@ -53,10 +53,10 @@ class DataManager:
             os.makedirs(schedule_dir)
             assert os.path.exists(schedule_dir) == True
 
-        result_dir = os.path.dirname(self.result_path)
-        if (os.path.exists(self.result_path)):
+        result_dir = os.path.dirname(self.result_dir)
+        if (os.path.exists(self.result_dir)):
             print("WARN: result output path exists!  Will overwrite!")
-            print(self.result_path)
+            print(self.result_dir)
         elif not os.path.exists(result_dir):
             print("WARN: result dir does not exists!  Will create one.")
             os.makedirs(result_dir)
@@ -118,7 +118,7 @@ class DataManager:
             res = { 'id': car.id, 't': car.t, 'wait_time': car.wait_time}
             result['arrived'].append(res)
 
-        with open(self.result_path, 'w+b') as f:
+        with open(os.path.join(self.result_dir, 'result.json'), 'w+b') as f:
             print('{} Start writing file'.format(datetime.now()))
             d = orjson.dumps(result, option=orjson.OPT_INDENT_2)
             f.write(d)

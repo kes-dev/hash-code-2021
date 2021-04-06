@@ -4,6 +4,7 @@ from datetime import datetime
 
 import datautil as du
 import strategy.naiveratio as nr
+from strategy.synchronise import Synchronise as Syn
 from sim import Simulation
 import poststat
 
@@ -15,10 +16,19 @@ def prepare_config():
     with open(args.cfg, 'r') as cfg_file:
         return yaml.load(cfg_file, Loader=yaml.FullLoader)
 
-def gen_schedule(strategy, map_data):
-    if strategy['name'] == 'naiveratio':
-        nr.validate(strategy['config'])
+def gen_schedule(strategy, map_data, result_dir):
+    name = strategy['name']
+    config = strategy['config']
+
+    if name == 'naiveratio':
+        nr.validate(config)
         return nr.gen_schedule(map_data, strategy['config'])
+
+    elif name == 'synchronise':
+        syn = Syn(map_data, config, result_dir)
+        syn.validate()
+        return syn.gen_schedule()
+
 
 def print_map_info(misc):
     print('Duration: {}'.format(misc.d))
@@ -42,7 +52,7 @@ def main():
     cfg = prepare_config()
     print(cfg)
 
-    dm = du.DataManager(cfg['map_path'], cfg['schedule_path'], cfg['result_path'])
+    dm = du.DataManager(cfg)
     dm.check_path()
 
     log_section('Load Map Data')
@@ -50,7 +60,7 @@ def main():
     print_map_info(map_data.misc)
 
     log_section('Generate Schedule')
-    schedule = gen_schedule(cfg['strategy'], map_data)
+    schedule = gen_schedule(cfg['strategy'], map_data, cfg['result_dir'])
     dm.save_schedule(schedule)
 
     sim = Simulation(map_data, schedule)
@@ -67,8 +77,8 @@ def main():
     dm.save_result(score, arrived)
     print_score(score, len(arrived), map_data.misc.trip_count)
 
-    #poststat.wait_time_dist_by_order(arrived)
-    #poststat.wait_time_dist_by_intersection(map_data.street, schedule, arrived)
+    poststat.wait_time_dist_by_order(arrived)
+    poststat.wait_time_dist_by_intersection(map_data.street, schedule, arrived)
 
     log_section('Run End')
 
